@@ -1,29 +1,17 @@
-const properties = require('./json/properties.json');
-const users = require('./json/users.json');
-
-const { Pool } = require('pg');
-
-const pool = new Pool({
-  user: 'vagrant',
-  password: '123',
-  host: 'localhost',
-  database: 'lightbnb'
-});
+const pool = require('./index.js');
 
 /// Users
 
-/**
- * Get a single user from the database given their email.
- * @param {String} email The email of the user.
- * @return {Promise<{}>} A promise to the user.
- */
+// Get a single user from the database given their email.
 const getUserWithEmail = function(email) {
+  //Query Params
   const queryString = `
   SELECT id, name, email, password
   FROM users
   WHERE email = $1;
   `
   email = [email];
+  // Database Query
   return pool.query(queryString, email)
   .then((res) => res.rows[0])
   .catch((err) => {
@@ -32,18 +20,16 @@ const getUserWithEmail = function(email) {
 }
 exports.getUserWithEmail = getUserWithEmail;
 
-/**
- * Get a single user from the database given their id.
- * @param {string} id The id of the user.
- * @return {Promise<{}>} A promise to the user.
- */
+// Get a single user from the database given their id.
 const getUserWithId = function(id) {
+  //Query Params  
   const queryString = `
   SELECT id, name, email, password
   FROM users
   WHERE id = $1;
   `
   id = [id];
+  // Database Query
   return pool.query(queryString, id)
   .then((res) => res.rows[0])
   .catch((err) => {
@@ -52,19 +38,16 @@ const getUserWithId = function(id) {
 }
 exports.getUserWithId = getUserWithId;
 
-
-/**
- * Add a new user to the database.
- * @param {{name: string, password: string, email: string}} user
- * @return {Promise<{}>} A promise to the user.
- */
+// Add a new user to the database.
 const addUser =  function(user) {
+  //Query Params 
   const queryString = `
   INSERT INTO users (name, email, password)
   VALUES ($1, $2, $3)
   RETURNING *;
   `
   const values = [user.name, user.email, user.password];
+  // Database Query
   return pool.query(queryString, values)
   .then(res => res.rows[0])
   .catch((err) => {
@@ -75,12 +58,9 @@ exports.addUser = addUser;
 
 /// Reservations
 
-/**
- * Get all reservations for a single user.
- * @param {string} guest_id The id of the user.
- * @return {Promise<[{}]>} A promise to the reservations.
- */
+// Get all reservations for a single user.
 const getAllReservations = function(guest_id) {
+  //Query Params
   const queryString = `
   SELECT properties.id, properties.title, properties.city, properties.cost_per_night, start_date, end_date, number_of_bedrooms, number_of_bathrooms, parking_spaces, thumbnail_photo_url, cover_photo_url, AVG(property_reviews.rating) as average_rating
   FROM reservations
@@ -92,6 +72,7 @@ const getAllReservations = function(guest_id) {
   LIMIT $2;
   `
   const values = [guest_id, 10];
+  // Database Query
   return pool.query(queryString, values)
   .then(res => {
     return res.rows;
@@ -104,12 +85,7 @@ exports.getAllReservations = getAllReservations;
 
 /// Properties
 
-/**
- * Get all properties.
- * @param {{}} options An object containing query options.
- * @param {*} limit The number of results to return.
- * @return {Promise<[{}]>}  A promise to the properties.
- */
+// Get all properties.
 const getAllProperties = function(options, limit = 50) {
   //Query Params
   const queryParams = [];
@@ -124,7 +100,7 @@ const getAllProperties = function(options, limit = 50) {
   }
   if (options.owner_id) {
     queryParams.length > 0 ? queryString += `AND ` : queryString += `WHERE `;
-    queryParams.push(options.owner_id);
+    queryParams.push(Number(options.owner_id));
     queryString += `owner_id = $${queryParams.length} `;
   }
   if (options.minimum_price_per_night && options.maximum_price_per_night) {
@@ -153,19 +129,16 @@ const getAllProperties = function(options, limit = 50) {
 }
 exports.getAllProperties = getAllProperties;
 
-
-/**
- * Add a property to the database
- * @param {{}} property An object containing all of the property details.
- * @return {Promise<{}>} A promise to the property.
- */
+// Add a property to the database
 const addProperty = function(property) {
+  //Query Params
   const insertProperty = `
   INSERT INTO properties (owner_id, title, description, thumbnail_photo_url, cover_photo_url, cost_per_night, street, city, province, post_code, country, parking_spaces, number_of_bathrooms, number_of_bedrooms)
   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
   RETURNING *;
   `
   const values = [property.owner_id, property.title, property.description, property.thumbnail_photo_url, property.cover_photo_url, property.cost_per_night, property.street, property.city, property.province, property.post_code, property.country, Number(property.parking_spaces), Number(property.number_of_bathrooms), Number(property.number_of_bedrooms)];
+  // Database Query
   return pool.query(insertProperty, values)
   .then(res => res.rows)
   .catch((err) => {
