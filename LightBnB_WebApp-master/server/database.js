@@ -116,7 +116,7 @@ const getAllProperties = function(options, limit = 50) {
   let queryString = `
   SELECT properties.*, AVG(property_reviews.rating) AS average_rating
   FROM properties
-  JOIN property_reviews ON property_id = properties.id
+  LEFT JOIN property_reviews ON property_id = properties.id
   `
   if (options.city) {
     queryParams.push(`%${options.city}%`);
@@ -124,8 +124,8 @@ const getAllProperties = function(options, limit = 50) {
   }
   if (options.owner_id) {
     queryParams.length > 0 ? queryString += `AND ` : queryString += `WHERE `;
-    queryParams.push(`%${options.owner_id}%`);
-    queryString += `owner_id LIKE $${queryParams.length} `;
+    queryParams.push(options.owner_id);
+    queryString += `owner_id = $${queryParams.length} `;
   }
   if (options.minimum_price_per_night && options.maximum_price_per_night) {
     queryParams.length > 0 ? queryString += `AND ` : queryString += `WHERE `;
@@ -160,9 +160,16 @@ exports.getAllProperties = getAllProperties;
  * @return {Promise<{}>} A promise to the property.
  */
 const addProperty = function(property) {
-  const propertyId = Object.keys(properties).length + 1;
-  property.id = propertyId;
-  properties[propertyId] = property;
-  return Promise.resolve(property);
+  const insertProperty = `
+  INSERT INTO properties (owner_id, title, description, thumbnail_photo_url, cover_photo_url, cost_per_night, street, city, province, post_code, country, parking_spaces, number_of_bathrooms, number_of_bedrooms)
+  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+  RETURNING *;
+  `
+  const values = [property.owner_id, property.title, property.description, property.thumbnail_photo_url, property.cover_photo_url, property.cost_per_night, property.street, property.city, property.province, property.post_code, property.country, Number(property.parking_spaces), Number(property.number_of_bathrooms), Number(property.number_of_bedrooms)];
+  return pool.query(insertProperty, values)
+  .then(res => res.rows)
+  .catch((err) => {
+    console.error('query error', err.stack);
+  });
 }
 exports.addProperty = addProperty;
