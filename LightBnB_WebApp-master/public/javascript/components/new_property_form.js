@@ -4,6 +4,7 @@ $(() => {
 
   const $newPropertyForm = $(`
   <form action="/api/properties" method="post" id="new-property-form" class="new-property-form">
+      <h3>Create New Property Listing</h3>
       <div class="new-property-form__field-wrapper">
         <label for="new-property-form__title">Title</label>
         <input type="text" name="title" placeholder="Title" id="new-property-form__title">
@@ -88,17 +89,6 @@ $(() => {
   `);
 
   window.$newPropertyForm = $newPropertyForm;
-
-  $newPropertyForm.addressfield({
-    json: 'javascript/libraries/addressfield/addressfield.min.json',
-    fields: {
-      country: '#new-property-form__country',
-      locality: '#new-property-form__locality-fields',
-      localityname: '#new-property-form__city',
-      administrativearea: '#new-property-form__state',
-      postalcode: '#new-property-form__zip'
-    }
-  });
 
   $newPropertyForm.on('submit', function (event) {
     event.preventDefault();

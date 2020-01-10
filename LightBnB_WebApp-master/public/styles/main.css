@@ -8,7 +8,7 @@
   margin: 20px 0;
   width: 100%;
   max-width: 600px;
-  height: 200px;
+  height: auto;
   border: 1px solid black;
   box-sizing: border-box;
   display: flex;
@@ -18,6 +18,9 @@
   align-content: stretch; }
   .property-listing__title {
     font-size: 1.0rem; }
+  .property-listing__details {
+    margin-right: 25px;
+  }
   .property-listing__preview-image {
     overflow: hidden;
     max-width: 50%; }
